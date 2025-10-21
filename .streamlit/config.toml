@@ -1,0 +1,29 @@
+# ... otras configuraciones ...
+
+[global]
+showSidebarNavigation = false 
+
+[client]
+displayEnabled = false 
+
+# ... otras configuraciones ...
+```
+
+### 3. Forzar el Push y el Despliegue (Si no se ha subido)
+
+Si el `git push` anterior falló, la configuración nunca llegó a Streamlit Cloud. Ejecuta estos comandos una última vez en la terminal de Codespaces:
+
+1.  **Añadir el archivo modificado:**
+    ```bash
+    git add .streamlit/config.toml
+    ```
+
+2.  **Confirma los cambios (Commit):**
+    ```bash
+    git commit -m "feat: Forzar ocultación final de botones de administración"
+    ```
+
+3.  **Sube los cambios a GitHub (Push):**
+    ```bash
+    git push
+    

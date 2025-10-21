@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Planificador de Rutas Inteligente</title>
+  <meta name="description" content="Crea rutas optimizadas con múltiples paradas, autocompletado de direcciones y códigos QR. MVP funcionando en Streamlit.">
+  <meta property="og:title" content="Planificador de Rutas Inteligente">
+  <meta property="og:description" content="Crea rutas optimizadas con múltiples paradas, autocompletado de direcciones y códigos QR.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://generarturuta.streamlit.app/">
+  <meta name="theme-color" content="#4f46e5">
+
+  <!-- TailwindCSS vía CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glass { backdrop-filter: blur(10px); background: rgba(255,255,255,0.7); }
+  </style>
+</head>
+<body class="bg-gradient-to-b from-indigo-50 to-white text-slate-800">
+  <!-- NAV -->
+  <header class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-9 w-9 rounded-xl bg-indigo-600"></div>
+      <span class="font-semibold tracking-tight">Planificador de Rutas</span>
+    </div>
+    <nav class="hidden md:flex items-center gap-6">
+      <a href="#features" class="hover:text-indigo-700">Características</a>
+      <a href="#demo" class="hover:text-indigo-700">Demo</a>
+      <a href="#contact" class="hover:text-indigo-700">Contacto</a>
+      <a href="https://generarturuta.streamlit.app" class="px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition">
+        Probar la app
+      </a>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="max-w-6xl mx-auto px-6 pt-10 pb-14">
+    <div class="grid md:grid-cols-2 gap-10 items-center">
+      <div>
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-sm">
+          MVP en producción · Streamlit Cloud
+        </span>
+        <h1 class="mt-4 text-4xl md:text-5xl font-extrabold leading-tight">
+          Planificador de Rutas <span class="text-indigo-600">Inteligente</span>
+        </h1>
+        <p class="mt-4 text-lg text-slate-600">
+          Crea rutas optimizadas con múltiples paradas, autocompletado de direcciones y códigos QR para compartir al instante.
+          Tres modos: <strong>Profesional</strong>, <strong>Viajero</strong> y <strong>Turístico</strong>.
+        </p>
+        <div class="mt-6 flex flex-col sm:flex-row gap-3">
+          <a href="https://generarturuta.streamlit.app" class="px-5 py-3 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 text-center">
+            🚀 Probar el MVP
+          </a>
+          <a href="mailto:tuemail@ejemplo.com?subject=Interés%20en%20Planificador%20de%20Rutas&body=Hola%2C%20me%20interesa%20colaborar%2Finvertir%20en%20el%20proyecto..."
+             class="px-5 py-3 rounded-xl border border-slate-300 hover:border-slate-400 text-center">
+            🤝 Contactar / Invertir
+          </a>
+        </div>
+        <p class="mt-3 text-xs text-slate-500">
+          * Sustituye <code>tuemail@ejemplo.com</code> por tu correo real.
+        </p>
+      </div>
+
+      <!-- Mockup sencillo -->
+      <div class="glass rounded-2xl shadow-xl border border-slate-200 p-4">
+        <div class="rounded-xl bg-white shadow-inner border border-slate-100 p-4">
+          <div class="h-5 w-24 bg-slate-200 rounded mb-3"></div>
+          <div class="h-10 bg-slate-100 rounded mb-2"></div>
+          <div class="h-10 bg-slate-100 rounded mb-2"></div>
+          <div class="h-10 bg-slate-100 rounded mb-6"></div>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="h-20 bg-slate-100 rounded"></div>
+            <div class="h-20 bg-slate-100 rounded"></div>
+            <div class="h-20 bg-slate-100 rounded"></div>
+          </div>
+        </div>
+        <p class="mt-3 text-center text-sm text-slate-500">
+          Vista ejemplo. Accede a la app para ver el MVP en vivo.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" class="max-w-6xl mx-auto px-6 py-12">
+    <h2 class="text-2xl font-bold mb-6">Características principales</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="p-6 rounded-2xl bg-white shadow-sm border border-slate-200">
+        <h3 class="font-semibold mb-2">Autocompletado potente</h3>
+        <p class="text-slate-600">Integración con Google Places / SerpAPI / Nominatim.</p>
+      </div>
+      <div class="p-6 rounded-2xl bg-white shadow-sm border border-slate-200">
+        <h3 class="font-semibold mb-2">Rutas con paradas</h3>
+        <p class="text-slate-600">Organiza origen, destino y paradas intermedias, reordena y genera la URL de Google Maps.</p>
+      </div>
+      <div class="p-6 rounded-2xl bg-white shadow-sm border border-slate-200">
+        <h3 class="font-semibold mb-2">Códigos QR</h3>
+        <p class="text-slate-600">Comparte fácilmente la ruta en móvil mediante QR.</p>
+      </div>
+      <div class="p-6 rounded-2xl bg-white shadow-sm border border-slate-200">
+        <h3 class="font-semibold mb-2">Modos</h3>
+        <p class="text-slate-600">Profesional, Viajero y Turístico con UX ajustada a cada caso.</p>
+      </div>
+      <div class="p-6 rounded-2xl bg-white shadow-sm border border-slate-200">
+        <h3 class="font-semibold mb-2">Tecnología</h3>
+        <p class="text-slate-600">Streamlit, Python, APIs de mapas. Despliegue en Streamlit Cloud.</p>
+      </div>
+      <div class="p-6 rounded-2xl bg-white shadow-sm border border-slate-200">
+        <h3 class="font-semibold mb-2">MVP validado</h3>
+        <p class="text-slate-600">Producto mínimo viable en producción, abierto a colaboración e inversión.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMO -->
+  <section id="demo" class="max-w-6xl mx-auto px-6 py-12">
+    <div class="rounded-2xl bg-indigo-50 border border-indigo-100 p-6">
+      <h2 class="text-2xl font-bold mb-4">Demostración</h2>
+      <p class="text-slate-700 mb-4">
+        Accede al MVP en vivo. Prueba el autocompletado, añade paradas, reordena y genera el QR de la ruta.
+      </p>
+      <a href="https://generarturuta.streamlit.app" class="inline-block px-5 py-3 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700">
+        Abrir la app en Streamlit
+      </a>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="max-w-6xl mx-auto px-6 py-12">
+    <h2 class="text-2xl font-bold mb-4">Colaboración / Inversión</h2>
+    <p class="text-slate-700">
+      El proyecto busca socios estratégicos, inversores y partners publicitarios para su crecimiento.
+      Si te interesa formar parte del desarrollo o difusión, contáctame.
+    </p>
+    <div class="mt-4">
+      <a href="mailto:tuemail@ejemplo.com?subject=Interés%20en%20Planificador%20de%20Rutas"
+         class="inline-block px-5 py-3 rounded-xl border border-slate-300 hover:border-slate-400">
+        Escribir correo
+      </a>
+    </div>
+  </section>
+
+  <footer class="max-w-6xl mx-auto px-6 py-10 text-sm text-slate-500">
+    <div class="border-t border-slate-200 pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
+      <span>© 2025 Miguel Ángel Molinero Palacios. Todos los derechos reservados.</span>
+      <a class="hover:text-indigo-700" href="https://generarturuta.streamlit.app">Abrir el MVP</a>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Places Autocomplete</title>
+</head>
+<body>
+    <input id="pac-input" type="text" placeholder="Buscar dirección...">
+    <script>
+        // Esta función se ejecuta después de que el script de Google Maps se carga
+        function initAutocomplete() {
+            var input = document.getElementById('pac-input');
+            var autocomplete = new google.maps.places.Autocomplete(input);
+
+            // Escucha cuando se selecciona un lugar
+            autocomplete.addListener('place_changed', function() {
+                var place = autocomplete.getPlace();
+                if (place.geometry) {
+                    // Envía la dirección seleccionada de vuelta a Streamlit
+                    if (window.parent.postMessage) {
+                        window.parent.postMessage({
+                            type: 'streamlit:component:set_value',
+                            value: place.formatted_address 
+                        }, '*');
+                    }
+                }
+            });
+
+            // Código para enviar el valor actual del input a Streamlit cada vez que el usuario teclea
+            input.addEventListener('input', function() {
+                if (window.parent.postMessage) {
+                    window.parent.postMessage({
+                        type: 'streamlit:component:set_value',
+                        value: input.value 
+                    }, '*');
+                }
+            });
+        }
+    </script>
+    
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9to8vwZCbll7oPx_bAC77cOL2oxOx_zs&libraries=places&callback=initAutocomplete">
+    </script>
+</body>
+</html>

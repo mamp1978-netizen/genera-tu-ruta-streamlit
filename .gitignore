@@ -1,0 +1,46 @@
+# Archivos y carpetas ignorados por Git
+
+# Ocultar el archivo de secretos de Streamlit para que NUNCA se suba a GitHub.
+# Esta es la línea de seguridad CRÍTICA:
+.streamlit/secrets.toml
+
+# Directorios y archivos comunes de Python
+__pycache__
+*.pyc
+.venv/
+venv/
+
+
+### 3. Ejecutar Comandos de Limpieza en la Terminal (CRÍTICO)
+
+Tienes que hacer que Git "olvide" el archivo `secrets.toml`. Abre la terminal en Codespaces y ejecuta esto en orden:
+
+1.  **Detener el rastreo del archivo:**
+    ```bash
+    git rm --cached .streamlit/secrets.toml
+        *Esto borra el archivo de tu índice de Git, pero lo deja en tu disco local.*
+2.  **Agregar el `.gitignore` actualizado y el cambio de rastreo:**
+    ```bash
+    git add .gitignore .streamlit/secrets.toml
+        *Aquí, `.gitignore` se agrega para ser rastreado, pero `secrets.toml` solo se agrega para registrar su eliminación del índice.*
+3.  **Hacer Commit y Push:**
+    ```bash
+    git commit -m "feat: Se movió secrets.toml a .gitignore y se eliminó de forma pública"
+    git push
+    
+Después de este `push`, GitHub **ya no tendrá** el archivo `secrets.toml` en tu rama actual y la alerta debería desaparecer (aunque la clave seguirá en el historial).
+
+### 4. Configurar el Secreto Directamente en Streamlit Cloud
+
+**¡Este es el paso que sustituye a subir el archivo a GitHub!**
+
+1.  Ve a tu aplicación en Streamlit Cloud.
+2.  Haz clic en **"Manage app"** (Administrar aplicación).
+3.  Busca la sección **"Secrets"** (Secretos).
+4.  Copia la clave de tu archivo local `secrets.toml` y pégala aquí en el formato:
+
+        GOOGLE_PLACES_API_KEY="TU_CLAVE_API_AQUÍ"
+    
+5.  **Rotar la clave nuevamente:** Como la clave actual ya estuvo expuesta, lo más seguro es: **revocarla en Google Cloud Console, generar una nueva clave, y pegar esa TERCERA clave en los Secrets de Streamlit Cloud.**
+
+Una vez hecho todo esto, tu aplicación será segura y funcional.

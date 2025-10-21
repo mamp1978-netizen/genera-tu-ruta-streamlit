@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Planificador de Rutas – Genera tu ruta en segundos</title>
+  <meta name="description" content="Crea rutas con paradas intermedias, autocompletado de direcciones y QR para compartir. Optimiza por tiempo o distancia y abre en Google Maps. MVP operativo." />
+  <meta name="theme-color" content="#4f46e5" />
+
+  <!-- Open Graph / Twitter -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Planificador de Rutas – Genera tu ruta en segundos" />
+  <meta property="og:description" content="Planifica rutas con varias paradas. Autocompletado (Google/SerpAPI/OSM), orden drag & drop y QR para móvil." />
+  <meta property="og:image" content="https://dummyimage.com/1200x630/4f46e5/ffffff.png&text=Planificador+de+Rutas" />
+  <meta property="og:url" content="https://mamp1978-netizen.github.io/Apprutas/" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <style>
+    :root{
+      --primary:#4f46e5; --bg:#0b1020; --muted:#9aa4b2; --card:#0f172a; --ring:#6366f1;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu; color:#e5e7eb; background:linear-gradient(180deg,#0b1020 0%,#101826 100%) fixed}
+    a{color:inherit; text-decoration:none}
+    .container{max-width:1100px; margin:0 auto; padding:24px}
+    .nav{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 0}
+    .logo{display:flex; align-items:center; gap:12px; font-weight:700}
+    .logo-badge{width:36px; height:36px; border-radius:10px; display:grid; place-items:center; color:#fff; background:conic-gradient(from 220deg at 50% 50%, #22d3ee, #4f46e5, #22d3ee)}
+    .btn{display:inline-flex; align-items:center; gap:10px; padding:12px 18px; border-radius:12px; font-weight:600; border:1px solid transparent; transition:.15s}
+    .btn-primary{background:var(--primary); color:#fff; box-shadow:0 8px 24px rgba(79,70,229,.35)}
+    .btn-primary:hover{transform:translateY(-1px)}
+    .btn-ghost{border-color:#273047; background:#0c1324}
+    .hero{display:grid; gap:28px; padding:40px 0 28px}
+    .hero h1{font-size:clamp(28px,4vw,44px); line-height:1.15; margin:0}
+    .hero p{color:var(--muted); margin:0}
+    .grid{display:grid; gap:16px}
+    @media(min-width:860px){ .grid-3{grid-template-columns:repeat(3,1fr)} }
+    .card{background:var(--card); border:1px solid #1e293b; border-radius:16px; padding:18px}
+    .card h3{margin:6px 0 8px}
+    .muted{color:var(--muted)}
+    .badge{font-size:12px; padding:4px 8px; border-radius:999px; background:#0c1324; border:1px solid #25304a; color:#b6c0ce}
+    .section{padding:28px 0}
+    .footer{padding:24px 0; color:#98a3b3; border-top:1px solid #1f2a40}
+    .list{display:grid; gap:10px; margin:0; padding-left:18px}
+    .list li{margin-left:8px}
+    .cta{display:flex; gap:12px; flex-wrap:wrap}
+    .tag{display:inline-flex; align-items:center; gap:8px}
+    .kbd{padding:2px 6px; border:1px solid #2a3755; border-radius:6px; font-size:12px; background:#0c1324; color:#bcd0ff}
+    .hr{height:1px; background:#1e293b; margin:20px 0}
+  </style>
+</head>
+<body>
+  <header class="container nav">
+    <div class="logo">
+      <span class="logo-badge">🗺️</span>
+      <span>Planificador de Rutas</span>
+      <span class="badge">MVP</span>
+    </div>
+    <div class="cta">
+      <a class="btn btn-ghost" href="https://github.com/mamp1978-netizen/Apprutas" target="_blank" rel="noopener">⭐ Ver código</a>
+      <a class="btn btn-primary" href="https://generarturuta.streamlit.app" target="_blank" rel="noopener">Probar la App</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Genera tu ruta con varias paradas, <span style="color:#a5b4fc">en segundos</span>.</h1>
+      <p>Autocompletado de direcciones (Google / SerpAPI / OSM), reordenación manual, destino automático y QR para abrir en el móvil. Ideal para comerciales, técnicos y viajeros.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://generarturuta.streamlit.app" target="_blank" rel="noopener">Abrir MVP ahora</a>
+        <a class="btn btn-ghost" href="#features">Ver características</a>
+      </div>
+      <div class="muted tag"><span class="kbd">ENTER</span> para añadir puntos • <span class="kbd">↑↓</span> para ordenar • Último punto = destino</div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="grid grid-3">
+        <article class="card">
+          <h3>Autocompletado fiable</h3>
+          <p class="muted">Sugerencias desde Google Places, SerpAPI (Maps) y Nominatim (OSM). Si un proveedor falla, otro le cubre.</p>
+        </article>
+        <article class="card">
+          <h3>Optimiza la ruta</h3>
+          <p class="muted">Elige “Más rápido”, “Más corto” u otras reglas sencillas. El destino se fija automáticamente como el último punto.</p>
+        </article>
+        <article class="card">
+          <h3>QR y Google Maps</h3>
+          <p class="muted">Genera un enlace directo para abrir en Google Maps y un QR listo para escanear en campo.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section card">
+      <h3>Cómo funciona</h3>
+      <ol class="list">
+        <li>Escribe una dirección en la barra superior y pulsa <span class="kbd">ENTER</span>. Añade tantas paradas como quieras.</li>
+        <li>Reordena los puntos con las flechas. El último será el destino.</li>
+        <li>Haz clic en “Generar ruta” para obtener el enlace/QR y abrir en Google Maps.</li>
+      </ol>
+      <div class="hr"></div>
+      <div class="muted">No guardamos tus rutas. Las direcciones se procesan en el momento y se generan enlaces seguros a Google Maps.</div>
+    </section>
+
+    <section class="section">
+      <div class="grid grid-3">
+        <article class="card">
+          <h3>Casos de uso</h3>
+          <ul class="list muted">
+            <li>Visitas comerciales (clientes en un día).</li>
+            <li>Rondas de mantenimiento/inspecciones.</li>
+            <li>Turismo con varias paradas planificadas.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Stack técnico</h3>
+          <ul class="list muted">
+            <li>Frontend server-driven con Streamlit.</li>
+            <li>APIs: Google Places, SerpAPI, Nominatim (OSM).</li>
+            <li>QR con <code>qrcode</code>, despliegue en Streamlit Cloud.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Contacto / Interés</h3>
+          <p class="muted">¿Partner, inversión o pilotos? Escríbenos:</p>
+          <p><a class="btn btn-primary" href="mailto:mamp1978.netizen@gmail.com">Contactar</a></p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container footer">
+    <div>© <span id="y"></span> Planificador de Rutas. Hecho con cariño en Streamlit.</div>
+    <div class="muted">Código: <a href="https://github.com/mamp1978-netizen/Apprutas" target="_blank" rel="noopener">GitHub/Apprutas</a> • App: <a href="https://generarturuta.streamlit.app" target="_blank" rel="noopener">Streamlit</a></div>
+  </footer>
+
+  <script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+</body>
+</html>

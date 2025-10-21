@@ -1,0 +1,20 @@
+[theme]
+primaryColor = "#4f46e5"
+backgroundColor = "white"
+secondaryBackgroundColor = "#f6f7fb"
+textColor = "#111827"
+font = "sans serif"
+
+[server]
+headless = true
+enableCORS = false
+enableXsrfProtection = true
+port = 8501
+
+[client]
+showErrorDetails = true
+toolbarMode = "auto"
+
+[ui]
+hideTopBar = false
+wideMode = true

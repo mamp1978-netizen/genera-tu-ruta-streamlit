@@ -1,0 +1,4 @@
+streamlit
+Pillow
+google-genai
+google-api-python-client

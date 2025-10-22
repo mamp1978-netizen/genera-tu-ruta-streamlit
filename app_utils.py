@@ -90,3 +90,8 @@ def resolve_selection(selection):
     """Versión temporal vacía de resolve_selection (retorna None)."""
     return None
 # --- Fin del parche temporal ---
+# --- Función vacía temporal para evitar error de importación ---
+def build_gmaps_url(origin=None, destination=None, waypoints=None):
+    """Versión temporal vacía de build_gmaps_url (retorna cadena vacía)."""
+    return ""
+# --- Fin del parche temporal ---

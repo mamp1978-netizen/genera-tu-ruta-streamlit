@@ -2,3 +2,4 @@ streamlit==1.50.0
 googlemaps==4.10.0
 requests>=2.31
 python-dotenv>=1.0
+pandas>=2.0

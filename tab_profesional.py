@@ -99,20 +99,19 @@ def mostrar_tab_ruta(tipo: str, label: str):
             waze_url = build_waze_url(origen_meta, destino_meta)
             apple_url = build_apple_maps_url(origen_meta, destino_meta)
 
-            if gmaps_url:
-                st.link_button("🌍 Abrir en Google Maps", gmaps_url, key=_k(tipo, "btn_gmaps"))
-                st.session_state[_k(tipo, "last_route_url")] = gmaps_url
-            else:
-                st.warning("No se pudo generar la ruta en Google Maps.")
+    if gmaps_url:
+        st.markdown(f"[🌍 **Abrir en Google Maps**]({gmaps_url})", unsafe_allow_html=True)
+        st.session_state[_k(tipo, "last_route_url")] = gmaps_url
+else:
+        st.warning("No se pudo generar la ruta en Google Maps.")
 
-            if waze_url:
-                st.link_button("🚗 Abrir en Waze", waze_url, key=_k(tipo, "btn_waze"))
-            else:
-                st.info("Waze no admite múltiples paradas; se usa solo origen/destino.")
+    if waze_url:
+    st.markdown(f"[🚗 **Abrir en Waze**]({waze_url})", unsafe_allow_html=True)
+else:
+        st.info("Waze no admite múltiples paradas; se usa solo origen/destino.")
 
-            if apple_url:
-                st.link_button("🍎 Abrir en Apple Maps", apple_url, key=_k(tipo, "btn_apple"))
-
+    if apple_url:
+        st.markdown(f"[🍎 **Abrir en Apple Maps**]({apple_url})", unsafe_allow_html=True)
             st.success("✅ Ruta generada correctamente.")
         except Exception as e:
             st.error(f"Ocurrió un error al generar la ruta: {e}")

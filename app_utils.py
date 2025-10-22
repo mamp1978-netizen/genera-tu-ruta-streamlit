@@ -125,3 +125,15 @@ if "build_waze_url" not in globals():
         Podemos implementar Waze con coords (lat,lng) cuando lo necesites.
         """
         return build_gmaps_url(points)
+# 5) Construir URL de Apple Maps (función mínima)
+if "build_apple_maps_url" not in globals():
+    def build_apple_maps_url(points):
+        """
+        Devuelve una URL de Apple Maps Directions a partir de una lista
+        de direcciones. Ej.: ["Barcelona", "Madrid"]
+        """
+        if not points:
+            return None
+        base = "https://maps.apple.com/?daddr="
+        destino = "+to:".join(quote(str(p)) for p in points if str(p).strip())
+        return base + destino

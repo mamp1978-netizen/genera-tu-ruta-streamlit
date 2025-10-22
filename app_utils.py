@@ -137,3 +137,18 @@ if "build_apple_maps_url" not in globals():
         base = "https://maps.apple.com/?daddr="
         destino = "+to:".join(quote(str(p)) for p in points if str(p).strip())
         return base + destino
+# 6) Definir set_location_bias (para compatibilidad con tab_profesional)
+if "set_location_bias" not in globals():
+    def set_location_bias(location=None, radius_km=50):
+        """
+        Devuelve un diccionario de sesgo geográfico (location bias)
+        usado para priorizar resultados cerca de una coordenada.
+        Implementación mínima: devuelve None o estructura vacía.
+        """
+        if location is None:
+            return None
+        try:
+            lat, lng = map(float, location)
+            return {"locationBias": f"circle:{int(radius_km*1000)}@{lat},{lng}"}
+        except Exception:
+            return None

@@ -412,7 +412,7 @@ apple_url = build_apple_maps_url(origen_meta, destino_meta)
 if apple_url:
     st.link_button("Abrir en Apple Maps", apple_url)        
         # --- 4.3 Mostrar Resultados ---
-        st.session_state.prof_last_route_url = gmaps_url 
+    st.session_state.prof_last_route_url = gmaps_url 
         
         st.success("¡Ruta generada correctamente! 👇")
         

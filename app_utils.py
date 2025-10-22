@@ -88,24 +88,38 @@ def suggest_addresses(
 # ---- Resolver selección (stub seguro) ----------------------------------------
 def resolve_selection(term: str, place_id: str | None = None) -> dict:
     """
-    Dado un 'place_id' opcional, intenta obtener detalles.
-    Si no hay gmaps o place_id, devuelve {'query': term}.
+    Devuelve SIEMPRE un dict con al menos:
+      {
+        "address": str,            # nunca falta (si no hay datos -> term)
+        "query": str,              # eco del término buscado
+        "place_id": Optional[str],
+        "lat": Optional[float],
+        "lng": Optional[float],
+    }
     """
+    base = {"query": term, "place_id": place_id, "address": term, "lat": None, "lng": None}
+
     if gmaps is None or not place_id:
-        return {"query": term}
+        return base
 
     try:
-        detail = gmaps.place(place_id=place_id)
-        result = (detail or {}).get("result", {})
-        return {
-            "query": term,
-            "place_id": place_id,
-            "geometry": result.get("geometry"),
-            "formatted_address": result.get("formatted_address"),
-        }
-    except Exception:
-        return {"query": term, "place_id": place_id}
+        detail = gmaps.place(place_id=place_id) or {}
+        result = detail.get("result", {}) if isinstance(detail, dict) else {}
+        addr = result.get("formatted_address") or result.get("name") or term
 
+        lat = None
+        lng = None
+        geom = result.get("geometry") or {}
+        loc = geom.get("location") if isinstance(geom, dict) else None
+        if isinstance(loc, dict):
+            lat = loc.get("lat")
+            lng = loc.get("lng")
+
+        base.update({"address": addr, "lat": lat, "lng": lng})
+        return base
+    except Exception:
+        # A prueba de fallos: nunca rompemos la UI
+        return base
 
 # ---- Construcción de URLs (stubs por compatibilidad) -------------------------
 def build_gmaps_url() -> str:

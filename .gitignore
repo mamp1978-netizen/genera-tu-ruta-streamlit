@@ -43,4 +43,4 @@ Después de este `push`, GitHub **ya no tendrá** el archivo `secrets.toml` en t
     
 5.  **Rotar la clave nuevamente:** Como la clave actual ya estuvo expuesta, lo más seguro es: **revocarla en Google Cloud Console, generar una nueva clave, y pegar esa TERCERA clave en los Secrets de Streamlit Cloud.**
 
-Una vez hecho todo esto, tu aplicación será segura y funcional.
+Una vez hecho todo esto, tu aplicación será segura y funcional..streamlit/secrets.toml

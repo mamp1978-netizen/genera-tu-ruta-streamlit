@@ -1,16 +1,19 @@
 import streamlit as st
+from datetime import datetime
+
 from app_utils import (
     suggest_addresses,
     build_gmaps_url,
     build_waze_url,
     build_apple_maps_url,
 )
-from datetime import datetime
 
 def mostrar_profesional():
     st.title("🗺️ Planificador de Rutas")
-    st.write("Crea rutas con paradas usando direcciones completas. "
-             "La última parada puede ser el destino final.")
+    st.write(
+        "Crea rutas con paradas usando direcciones completas. "
+        "La última parada puede ser el destino final."
+    )
 
     tabs = st.tabs(["Profesional", "Viajero", "Turístico"])
 
@@ -26,27 +29,42 @@ def mostrar_profesional():
 
 def mostrar_tab_ruta(tipo="prof", label="Ruta personalizada"):
     st.subheader(label)
-    modo = st.selectbox("Tipo de ruta", ["Más rápido", "Corta", "Económica"])
-    evitar = st.selectbox("Evitar", ["Ninguno", "Peajes", "Autopistas", "Ferries"])
+
+    # keys únicos por pestaña
+    modo = st.selectbox(
+        "Tipo de ruta",
+        ["Más rápido", "Corta", "Económica"],
+        key=f"{tipo}_modo",
+    )
+    evitar = st.selectbox(
+        "Evitar",
+        ["Ninguno", "Peajes", "Autopistas", "Ferries"],
+        key=f"{tipo}_evitar",
+    )
     st.markdown("---")
 
-    # Entrada de direcciones
+    # Lista de direcciones en estado
     direcciones = st.session_state.get(f"{tipo}_direcciones", [])
-    nueva = st.text_input("Escribe la dirección (mín. 3 letras) y pulsa ENTER")
 
-    if nueva:
-        if len(nueva) >= 3:
+    nueva = st.text_input(
+        "Escribe la dirección (mín. 3 letras) y pulsa ENTER",
+        key=f"{tipo}_nueva",
+    )
+
+    # Al escribir, si tiene 3+ caracteres, guardamos provisionalmente
+    if nueva and len(nueva) >= 3:
+        if (not direcciones) or (direcciones and direcciones[-1] != nueva):
+            # evitamos duplicados consecutivos
             direcciones.append(nueva)
             st.session_state[f"{tipo}_direcciones"] = direcciones
-        else:
-            st.warning("Introduce al menos 3 caracteres.")
 
     col1, col2 = st.columns([1, 1])
     with col1:
-        if st.button("🧭 Añadir"):
+        if st.button("🧭 Añadir", key=f"{tipo}_add"):
+            # ya se añadió al escribir; aquí solo reafirmamos
             st.session_state[f"{tipo}_direcciones"] = direcciones
     with col2:
-        if st.button("🧹 Limpiar"):
+        if st.button("🧹 Limpiar", key=f"{tipo}_clear"):
             st.session_state[f"{tipo}_direcciones"] = []
             direcciones = []
 
@@ -64,57 +82,53 @@ def mostrar_tab_ruta(tipo="prof", label="Ruta personalizada"):
     st.markdown("---")
     st.write("🔍 Generar ruta con Google Maps / Waze / Apple Maps")
 
-    if st.button("🚀 Generar ruta"):
+    if st.button("🚀 Generar ruta", key=f"{tipo}_generar"):
         try:
             origen_meta = {"address": direcciones[0]}
             destino_meta = {"address": direcciones[-1]}
-            waypoints_resolved = [
-                {"address": d} for d in direcciones[1:-1]
-            ] if len(direcciones) > 2 else []
+            waypoints_resolved = (
+                [{"address": d} for d in direcciones[1:-1]]
+                if len(direcciones) > 2
+                else []
+            )
 
-            # Construir URLs seguras
+            # Construir URLs (las funciones aceptan dicts con "address")
             gmaps_url = build_gmaps_url(
                 origin=origen_meta,
                 destination=destino_meta,
                 waypoints=waypoints_resolved,
                 mode="driving",
-                avoid=None,
+                avoid=None if evitar == "Ninguno" else evitar.lower(),
                 optimize=True,
             )
 
             waze_url = build_waze_url(origen_meta, destino_meta)
             apple_url = build_apple_maps_url(origen_meta, destino_meta)
 
-            # Mostrar enlaces si existen
             if gmaps_url:
-                st.link_button("🌍 Abrir en Google Maps", gmaps_url)
+                st.link_button("🌍 Abrir en Google Maps", gmaps_url, key=f"{tipo}_gmaps_btn")
+                st.session_state[f"{tipo}_last_route_url"] = gmaps_url
             else:
                 st.warning("No se pudo generar la ruta en Google Maps.")
 
             if waze_url:
-                st.link_button("🚗 Abrir en Waze", waze_url)
+                st.link_button("🚗 Abrir en Waze", waze_url, key=f"{tipo}_waze_btn")
             else:
-                st.info("Waze no admite múltiples paradas; solo se muestra destino.")
+                st.info("Waze no admite múltiples paradas; se usa solo origen/destino.")
 
             if apple_url:
-                st.link_button("🍎 Abrir en Apple Maps", apple_url)
+                st.link_button("🍎 Abrir en Apple Maps", apple_url, key=f"{tipo}_apple_btn")
 
-            # Guardar última ruta
-            st.session_state[f"{tipo}_last_route_url"] = gmaps_url
             st.success("✅ Ruta generada correctamente.")
 
         except Exception as e:
             st.error(f"Ocurrió un error al generar la ruta: {e}")
 
 
-# --- Función auxiliar para mostrar sugerencias en campo de texto ---
-def buscar_sugerencias(termino):
-    """
-    Devuelve lista de direcciones sugeridas por la API de Google Places
-    o SerpAPI. Se usa para autocompletado.
-    """
+def buscar_sugerencias(termino: str):
+    """Autocompletado con Google Places / SerpAPI."""
     try:
-        sugerencias = suggest_addresses(termino, key_bucket="prof_top", min_len=3)
-        return [s["description"] for s in sugerencias]
+        sugs = suggest_addresses(termino, key_bucket="prof_top", min_len=3)
+        return [s.get("description") or s.get("address") or "" for s in sugs]
     except Exception:
         return []

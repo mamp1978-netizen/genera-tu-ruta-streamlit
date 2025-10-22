@@ -124,13 +124,12 @@ def resolve_selection(term: str, place_id: str | None = None) -> dict:
 # ---- Construcción de URLs (stubs por compatibilidad) -------------------------
 from urllib.parse import quote_plus
 
+from urllib.parse import quote_plus
+
 def _addr_from_any(x):
     """
-    Convierte 'x' (str o dict) en una cadena de dirección válida para URL:
-    - Si es str -> devuelve str
-    - Si es dict con 'address' -> devuelve esa cadena
-    - Si es dict con 'lat'/'lng' o 'latlng' -> devuelve 'lat,lng'
-    - Si es None o vacío -> devuelve None
+    x: str o dict ({address}|{formatted_address}|{lat,lng}|{latlng:{lat,lng}}|{geometry:{location:{lat,lng}}})
+    -> devuelve una cadena utilizable (dirección o 'lat,lng'), o None
     """
     if x is None:
         return None
@@ -138,24 +137,53 @@ def _addr_from_any(x):
         x = x.strip()
         return x if x else None
     if isinstance(x, dict):
-        # address directa
         addr = x.get("address") or x.get("formatted_address")
-        if addr and isinstance(addr, str) and addr.strip():
+        if isinstance(addr, str) and addr.strip():
             return addr.strip()
-        # lat/lng sueltos
-        lat = x.get("lat")
-        lng = x.get("lng")
+        lat = x.get("lat"); lng = x.get("lng")
         if isinstance(lat, (int, float)) and isinstance(lng, (int, float)):
             return f"{lat},{lng}"
-        # latlng anidado
-        latlng = x.get("latlng") or x.get("location") or x.get("geometry", {}).get("location")
+        latlng = (x.get("latlng") or x.get("location")
+                  or x.get("geometry", {}).get("location"))
         if isinstance(latlng, dict):
-            lat = latlng.get("lat")
-            lng = latlng.get("lng")
+            lat = latlng.get("lat"); lng = latlng.get("lng")
             if isinstance(lat, (int, float)) and isinstance(lng, (int, float)):
                 return f"{lat},{lng}"
     return None
 
+
+def build_waze_url(origin, destination, waypoints=None):
+    """
+    Waze no soporta múltiples paradas por URL. Solo destino (y arranca desde ubicación actual).
+    - Si proporcionas lat,lng -> usa ?ll=LAT,LNG&navigate=yes
+    - Si proporcionas address -> usa ?q=ADDRESS&navigate=yes
+    """
+    dest = _addr_from_any(destination)
+    if not dest:
+        return None
+
+    # ¿es lat,lng?
+    if "," in dest and all(part.replace(".", "", 1).replace("-", "", 1).isdigit() for part in dest.split(",", 1)):
+        return f"https://waze.com/ul?ll={quote_plus(dest)}&navigate=yes"
+    # por texto (address)
+    return f"https://waze.com/ul?q={quote_plus(dest)}&navigate=yes"
+
+
+def build_apple_maps_url(origin, destination):
+    """
+    Apple Maps en web soporta origen/destino, no multiples waypoints.
+    Acepta str o dicts en origin/destination.
+    """
+    o = _addr_from_any(origin)
+    d = _addr_from_any(destination)
+    if not d:
+        return None
+    parts = ["https://maps.apple.com/?dirflg=d"]
+    if o:
+        # si son coords 'lat,lng', van tal cual. Si es address, va como texto.
+        parts.append(f"saddr={quote_plus(o)}")
+    parts.append(f"daddr={quote_plus(d)}")
+    return "&".join(parts)
 
 def build_gmaps_url(
     origin,

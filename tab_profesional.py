@@ -386,18 +386,31 @@ def mostrar_profesional():
             "Ninguno": None
         }
         
-        gmaps_url = build_gmaps_url(
-            origin=origen_meta["address"],
-            destination=destino_meta["address"],
-            waypoints=waypoints_resolved,
-            mode="driving", 
-            avoid=avoid_map.get(st.session_state["prof_avoid"]),
-            optimize=True 
-        )
-        
-        waze_url = build_waze_url(origen_meta["address"], destino_meta["address"], waypoints_resolved)
-        apple_url = build_apple_maps_url(origen_meta["address"], destino_meta["address"], waypoints_resolved)
-        
+# Google Maps (ya lo tienes con build_gmaps_url robusta)
+gmaps_url = build_gmaps_url(
+    origin=origen_meta,
+    destination=destino_meta,
+    waypoints=waypoints_resolved,  # si existe
+    mode=modo,
+    avoid=evitar,
+    optimize=True,
+)
+if gmaps_url:
+    st.link_button("Abrir en Google Maps", gmaps_url)
+else:
+    st.warning("No se pudo construir el enlace de Google Maps.")
+
+# Waze (solo destino; ignora waypoints por limitación de la URL pública)
+waze_url = build_waze_url(origen_meta, destino_meta, waypoints_resolved)
+if waze_url:
+    st.link_button("Abrir en Waze", waze_url)
+else:
+    st.warning("No se pudo construir el enlace de Waze.")
+
+# Apple Maps (solo origen+destino)
+apple_url = build_apple_maps_url(origen_meta, destino_meta)
+if apple_url:
+    st.link_button("Abrir en Apple Maps", apple_url)        
         # --- 4.3 Mostrar Resultados ---
         st.session_state.prof_last_route_url = gmaps_url 
         

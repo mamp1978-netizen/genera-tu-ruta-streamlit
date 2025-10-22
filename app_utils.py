@@ -80,3 +80,48 @@ def search_serpapi(query: str):
     params = {"q": query, "api_key": SERPAPI_KEY}
     response = requests.get(url, params=params)
     return response.json()
+# ============================================================
+# PARCHE SUAVE: proveer funciones que tab_profesional importa.
+# Si ya existen, no las sobrescribimos.
+# ============================================================
+from urllib.parse import quote
+
+# 1) Sugerencias de direcciones (mínimo viable: lista vacía)
+if "suggest_addresses" not in globals():
+    def suggest_addresses(query: str):
+        """
+        Devuelve una lista de sugerencias de direcciones.
+        Implementación mínima para evitar ImportError.
+        Si quieres usarlo de verdad, podemos conectarlo a Places API.
+        """
+        return []
+
+# 2) Resolver selección (identidad por defecto)
+if "resolve_selection" not in globals():
+    def resolve_selection(selection):
+        """
+        Dado el valor seleccionado en el UI, devuelve el texto final.
+        Implementación mínima: devuelve tal cual.
+        """
+        return selection
+
+# 3) Construir URL de Google Maps (funciona con direcciones en texto)
+if "build_gmaps_url" not in globals():
+    def build_gmaps_url(points):
+        """
+        Construye una URL de Google Maps Directions a partir de una lista
+        de direcciones (strings). Ej.: ["Barcelona", "Madrid"]
+        """
+        if not points:
+            return None
+        path = "/".join(quote(str(p)) for p in points if str(p).strip())
+        return f"https://www.google.com/maps/dir/{path}"
+
+# 4) Construir URL de Waze (fallback sencillo a Google Maps si no hay coords)
+if "build_waze_url" not in globals():
+    def build_waze_url(points):
+        """
+        Placeholder: si no trabajamos con coordenadas, devolvemos la URL de GMaps.
+        Podemos implementar Waze con coords (lat,lng) cuando lo necesites.
+        """
+        return build_gmaps_url(points)

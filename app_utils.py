@@ -152,3 +152,11 @@ if "set_location_bias" not in globals():
             return {"locationBias": f"circle:{int(radius_km*1000)}@{lat},{lng}"}
         except Exception:
             return None
+# 7) Definir _use_ip_bias (para compatibilidad)
+if "_use_ip_bias" not in globals():
+    def _use_ip_bias(ip_address=None):
+        """
+        Determina si debe aplicarse un sesgo basado en IP.
+        Implementación mínima: siempre devuelve False.
+        """
+        return False

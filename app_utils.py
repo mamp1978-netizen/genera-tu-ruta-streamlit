@@ -85,3 +85,8 @@ def suggest_addresses(query: str, max_results: int = 5):
     """Versión temporal vacía de suggest_addresses (devuelve lista vacía)."""
     return []
 # --- Fin del parche temporal ---
+# --- Función vacía temporal para evitar error de importación ---
+def resolve_selection(selection):
+    """Versión temporal vacía de resolve_selection (retorna None)."""
+    return None
+# --- Fin del parche temporal ---

@@ -80,3 +80,8 @@ def search_serpapi(query: str):
     params = {"q": query, "api_key": SERPAPI_KEY}
     response = requests.get(url, params=params)
     return response.json()
+# --- Función vacía temporal para evitar error de importación ---
+def suggest_addresses(query: str, max_results: int = 5):
+    """Versión temporal vacía de suggest_addresses (devuelve lista vacía)."""
+    return []
+# --- Fin del parche temporal ---

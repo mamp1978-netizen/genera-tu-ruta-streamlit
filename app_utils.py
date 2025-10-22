@@ -152,22 +152,39 @@ def _addr_from_any(x):
     return None
 
 
-def build_waze_url(origin, destination, waypoints=None):
+# app_utils.py
+
+def build_waze_url(origin=None, destination=None):
     """
-    Waze no soporta múltiples paradas por URL. Solo destino (y arranca desde ubicación actual).
-    - Si proporcionas lat,lng -> usa ?ll=LAT,LNG&navigate=yes
-    - Si proporcionas address -> usa ?q=ADDRESS&navigate=yes
+    Construye la URL para abrir una ruta en Waze.
+    Acepta origen y destino como dicts {'address': '...'} o strings.
     """
-    dest = _addr_from_any(destination)
-    if not dest:
+
+    try:
+        def _addr(x):
+            if not x:
+                return ""
+            if isinstance(x, dict):
+                return x.get("address", "")
+            return str(x)
+
+        o = _addr(origin)
+        d = _addr(destination)
+
+        # Si falta el destino, no generamos la URL
+        if not d:
+            return None
+
+        # Waze no admite múltiples paradas, solo origen y destino
+        if o:
+            return f"https://waze.com/ul?ll=&from={o}&to={d}&navigate=yes"
+        else:
+            # Solo destino
+            return f"https://waze.com/ul?ll=&to={d}&navigate=yes"
+
+    except Exception as e:
+        print(f"[build_waze_url] Error: {e}")
         return None
-
-    # ¿es lat,lng?
-    if "," in dest and all(part.replace(".", "", 1).replace("-", "", 1).isdigit() for part in dest.split(",", 1)):
-        return f"https://waze.com/ul?ll={quote_plus(dest)}&navigate=yes"
-    # por texto (address)
-    return f"https://waze.com/ul?q={quote_plus(dest)}&navigate=yes"
-
 
 def build_apple_maps_url(origin, destination):
     """

@@ -1,162 +1,123 @@
+# app_utils.py — utilidades de búsqueda y helpers
 import os
+import typing as t
+
 import streamlit as st
 
-# =========================================================
-# 🔐 GESTIÓN SEGURA DE CLAVES API PARA GOOGLE Y SERPAPI
-# =========================================================
+# ---- Google Maps client ------------------------------------------------------
+try:
+    import googlemaps  # pip install googlemaps
+except Exception:  # pragma: no cover
+    googlemaps = None  # type: ignore
 
-def get_secret(*names: str) -> str | None:
+# Clave desde secrets o env
+GOOGLE_PLACES_API_KEY = (
+    st.secrets.get("GOOGLE_PLACES_API_KEY")
+    or os.environ.get("GOOGLE_PLACES_API_KEY")
+    or st.secrets.get("GOOGLE_API_KEY")             # por compatibilidad
+    or os.environ.get("GOOGLE_API_KEY")
+)
+
+gmaps = None
+if googlemaps and GOOGLE_PLACES_API_KEY:
+    try:
+        gmaps = googlemaps.Client(key=GOOGLE_PLACES_API_KEY)
+    except Exception:
+        gmaps = None
+
+
+# ---- Helpers de sesgo de localización (stubs seguros) ------------------------
+def set_location_bias(lat: float | None = None, lng: float | None = None, radius_m: int = 20000) -> dict:
     """
-    Busca un secreto en st.secrets o variables de entorno.
-    Devuelve el primero encontrado.
+    Devuelve un dict con el string 'locationbias' como espera Places Autocomplete:
+    'circle:{radius_m}@{lat},{lng}'. Si no hay lat/lng, devuelve {} (sin sesgo).
     """
-    for n in names:
-        v = (st.secrets.get(n) if hasattr(st, "secrets") else None) or os.getenv(n)
-        if v:
-            return v
-    return None
+    if lat is None or lng is None:
+        return {}
+    return {"locationbias": f"circle:{int(radius_m)}@{lat},{lng}"}
 
 
-def get_environment() -> str:
+def _use_ip_bias(ip_address: str | None = None) -> bool:
+    """Stub: por ahora no aplicamos sesgo por IP."""
+    return False
+
+
+# ---- Autocompletado con Google Places ----------------------------------------
+def suggest_addresses(
+    term: str,
+    key_bucket: str = "prof_top",
+    min_len: int = 3,
+    bias: dict | None = None,
+    max_results: int = 8,
+) -> list[dict]:
     """
-    Determina si la app está en entorno de pruebas (STAGE) o producción (PRO).
-    Por defecto usa PRO, salvo que detecte variables o dominios de prueba.
+    Devuelve una lista de sugerencias: [{'description': str, 'place_id': str}, ...]
+    Nunca devuelve None (si no hay resultados o error => lista vacía).
     """
-    # Detectar dominio de pruebas (streamlit.app o test)
-    stage_domains = ["genera-tu-ruta-app", "localhost", "127.0.0.1"]
-    current_url = os.getenv("STREAMLIT_SERVER_URL", "")
-
-    if any(dom in current_url for dom in stage_domains):
-        return "STAGE"
-    # También se puede forzar manualmente con variable de entorno:
-    if os.getenv("APP_ENV", "").upper() == "STAGE":
-        return "STAGE"
-    return "PRO"
-
-
-ENV = get_environment()
-
-# =========================================================
-# 🔑 CARGA DE CLAVES SEGÚN ENTORNO
-# =========================================================
-
-if ENV == "STAGE":
-    GOOGLE_KEY = get_secret("GOOGLE_API_KEY_STAGE", "GOOGLE_API_KEY")
-    SERPAPI_KEY = get_secret("SERPAPI_KEY_STAGE", "SERPAPI_KEY")
-else:
-    GOOGLE_KEY = get_secret("GOOGLE_API_KEY_PRO", "GOOGLE_API_KEY")
-    SERPAPI_KEY = get_secret("SERPAPI_KEY_PRO", "SERPAPI_KEY")
-
-# =========================================================
-# 🧩 FUNCIONES DE DIAGNÓSTICO
-# =========================================================
-
-def show_diagnostics():
-    """Muestra en la app las claves detectadas (solo durante pruebas)."""
-    st.caption("🔎 Diagnóstico de configuración")
-    st.write(f"**Entorno actual:** {ENV}")
-    st.write(f"**Google API Key:** {'✅ Detectada' if GOOGLE_KEY else '❌ No encontrada'}")
-    st.write(f"**SerpAPI Key:** {'✅ Detectada' if SERPAPI_KEY else '❌ No encontrada'}")
-
-
-# =========================================================
-# 🧭 FUNCIONES DE ACCESO A LAS APIS
-# =========================================================
-
-def init_google_client():
-    """Inicializa cliente de Google Maps/Places con la clave actual."""
-    import googlemaps
-    if not GOOGLE_KEY:
-        raise ValueError("No se encontró la clave de Google API")
-    return googlemaps.Client(key=GOOGLE_KEY)
-
-
-def search_serpapi(query: str):
-    """Ejemplo de búsqueda con SerpAPI (básica)."""
-    import requests
-    if not SERPAPI_KEY:
-        raise ValueError("No se encontró la clave de SerpAPI")
-    url = "https://serpapi.com/search"
-    params = {"q": query, "api_key": SERPAPI_KEY}
-    response = requests.get(url, params=params)
-    return response.json()
-# ============================================================
-# PARCHE SUAVE: proveer funciones que tab_profesional importa.
-# Si ya existen, no las sobrescribimos.
-# ============================================================
-from urllib.parse import quote
-
-# 1) Sugerencias de direcciones (mínimo viable: lista vacía)
-if "suggest_addresses" not in globals():
-    def suggest_addresses(query: str):
-        """
-        Devuelve una lista de sugerencias de direcciones.
-        Implementación mínima para evitar ImportError.
-        Si quieres usarlo de verdad, podemos conectarlo a Places API.
-        """
+    if not term or len(term.strip()) < min_len:
         return []
 
-# 2) Resolver selección (identidad por defecto)
-if "resolve_selection" not in globals():
-    def resolve_selection(selection):
-        """
-        Dado el valor seleccionado en el UI, devuelve el texto final.
-        Implementación mínima: devuelve tal cual.
-        """
-        return selection
+    if gmaps is None:
+        # sin cliente configurado devolvemos vacío para no romper la UI
+        return []
 
-# 3) Construir URL de Google Maps (funciona con direcciones en texto)
-if "build_gmaps_url" not in globals():
-    def build_gmaps_url(points):
-        """
-        Construye una URL de Google Maps Directions a partir de una lista
-        de direcciones (strings). Ej.: ["Barcelona", "Madrid"]
-        """
-        if not points:
-            return None
-        path = "/".join(quote(str(p)) for p in points if str(p).strip())
-        return f"https://www.google.com/maps/dir/{path}"
+    params: dict[str, t.Any] = {"input": term, "types": "geocode"}
+    # locationbias opcional
+    if isinstance(bias, dict) and bias.get("locationbias"):
+        params["locationbias"] = bias["locationbias"]
 
-# 4) Construir URL de Waze (fallback sencillo a Google Maps si no hay coords)
-if "build_waze_url" not in globals():
-    def build_waze_url(points):
-        """
-        Placeholder: si no trabajamos con coordenadas, devolvemos la URL de GMaps.
-        Podemos implementar Waze con coords (lat,lng) cuando lo necesites.
-        """
-        return build_gmaps_url(points)
-# 5) Construir URL de Apple Maps (función mínima)
-if "build_apple_maps_url" not in globals():
-    def build_apple_maps_url(points):
-        """
-        Devuelve una URL de Apple Maps Directions a partir de una lista
-        de direcciones. Ej.: ["Barcelona", "Madrid"]
-        """
-        if not points:
-            return None
-        base = "https://maps.apple.com/?daddr="
-        destino = "+to:".join(quote(str(p)) for p in points if str(p).strip())
-        return base + destino
-# 6) Definir set_location_bias (para compatibilidad con tab_profesional)
-if "set_location_bias" not in globals():
-    def set_location_bias(location=None, radius_km=50):
-        """
-        Devuelve un diccionario de sesgo geográfico (location bias)
-        usado para priorizar resultados cerca de una coordenada.
-        Implementación mínima: devuelve None o estructura vacía.
-        """
-        if location is None:
-            return None
-        try:
-            lat, lng = map(float, location)
-            return {"locationBias": f"circle:{int(radius_km*1000)}@{lat},{lng}"}
-        except Exception:
-            return None
-# 7) Definir _use_ip_bias (para compatibilidad)
-if "_use_ip_bias" not in globals():
-    def _use_ip_bias(ip_address=None):
-        """
-        Determina si debe aplicarse un sesgo basado en IP.
-        Implementación mínima: siempre devuelve False.
-        """
-        return False
+    try:
+        resp = gmaps.places_autocomplete(**params) or []
+        out: list[dict] = []
+        for r in resp[:max_results]:
+            out.append(
+                {
+                    "description": r.get("description", ""),
+                    "place_id": r.get("place_id", ""),
+                    # campos extra por si la UI los usa en el futuro
+                    "structured_formatting": r.get("structured_formatting", {}),
+                    "types": r.get("types", []),
+                }
+            )
+        return out
+    except Exception:
+        # En caso de error de API, devolvemos lista vacía para evitar TypeError en la UI
+        return []
+
+
+# ---- Resolver selección (stub seguro) ----------------------------------------
+def resolve_selection(term: str, place_id: str | None = None) -> dict:
+    """
+    Dado un 'place_id' opcional, intenta obtener detalles.
+    Si no hay gmaps o place_id, devuelve {'query': term}.
+    """
+    if gmaps is None or not place_id:
+        return {"query": term}
+
+    try:
+        detail = gmaps.place(place_id=place_id)
+        result = (detail or {}).get("result", {})
+        return {
+            "query": term,
+            "place_id": place_id,
+            "geometry": result.get("geometry"),
+            "formatted_address": result.get("formatted_address"),
+        }
+    except Exception:
+        return {"query": term, "place_id": place_id}
+
+
+# ---- Construcción de URLs (stubs por compatibilidad) -------------------------
+def build_gmaps_url() -> str:
+    """Stub: no se usaba en la rama estable; devolvemos string vacío."""
+    return ""
+
+
+def build_waze_url() -> str:
+    """Stub: no se usaba en la rama estable; devolvemos string vacío."""
+    return ""
+
+
+def build_apple_maps_url() -> str:
+    """Stub: no se usaba en la rama estable; devolvemos string vacío."""
+    return ""

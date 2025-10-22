@@ -122,10 +122,106 @@ def resolve_selection(term: str, place_id: str | None = None) -> dict:
         return base
 
 # ---- Construcción de URLs (stubs por compatibilidad) -------------------------
-def build_gmaps_url() -> str:
-    """Stub: no se usaba en la rama estable; devolvemos string vacío."""
-    return ""
+from urllib.parse import quote_plus
 
+def _addr_from_any(x):
+    """
+    Convierte 'x' (str o dict) en una cadena de dirección válida para URL:
+    - Si es str -> devuelve str
+    - Si es dict con 'address' -> devuelve esa cadena
+    - Si es dict con 'lat'/'lng' o 'latlng' -> devuelve 'lat,lng'
+    - Si es None o vacío -> devuelve None
+    """
+    if x is None:
+        return None
+    if isinstance(x, str):
+        x = x.strip()
+        return x if x else None
+    if isinstance(x, dict):
+        # address directa
+        addr = x.get("address") or x.get("formatted_address")
+        if addr and isinstance(addr, str) and addr.strip():
+            return addr.strip()
+        # lat/lng sueltos
+        lat = x.get("lat")
+        lng = x.get("lng")
+        if isinstance(lat, (int, float)) and isinstance(lng, (int, float)):
+            return f"{lat},{lng}"
+        # latlng anidado
+        latlng = x.get("latlng") or x.get("location") or x.get("geometry", {}).get("location")
+        if isinstance(latlng, dict):
+            lat = latlng.get("lat")
+            lng = latlng.get("lng")
+            if isinstance(lat, (int, float)) and isinstance(lng, (int, float)):
+                return f"{lat},{lng}"
+    return None
+
+
+def build_gmaps_url(
+    origin,
+    destination,
+    waypoints=None,
+    mode="driving",
+    avoid=None,
+    optimize=False,
+):
+    """
+    Construye una URL de Google Maps Directions:
+    https://www.google.com/maps/dir/?api=1&origin=...&destination=...&travelmode=...
+    - origin, destination: str o dict ({address} o {lat,lng} o {latlng:{lat,lng}})
+    - waypoints: lista de str o dicts como arriba
+    - mode: 'driving' | 'walking' | 'bicycling' | 'transit'
+    - avoid: None o lista/str con: 'tolls','highways','ferries','indoor'
+    - optimize: bool -> añade 'optimize:true' en waypoints
+    """
+    o = _addr_from_any(origin)
+    d = _addr_from_any(destination)
+    if not o or not d:
+        # Devuelve None para que el caller pueda decidir qué hacer (evitamos TypeError)
+        return None
+
+    parts = [
+        "https://www.google.com/maps/dir/?api=1",
+        f"origin={quote_plus(o)}",
+        f"destination={quote_plus(d)}",
+    ]
+
+    # travel mode
+    mode = (mode or "driving").lower().strip()
+    if mode not in {"driving", "walking", "bicycling", "transit"}:
+        mode = "driving"
+    parts.append(f"travelmode={quote_plus(mode)}")
+
+    # avoid
+    if avoid:
+        if isinstance(avoid, str):
+            avoid_vals = [a.strip().lower() for a in avoid.split(",") if a.strip()]
+        else:
+            avoid_vals = [str(a).strip().lower() for a in avoid if str(a).strip()]
+        # filtra a los permitidos
+        allowed = {"tolls", "highways", "ferries", "indoor"}
+        avoid_vals = [a for a in avoid_vals if a in allowed]
+        if avoid_vals:
+            parts.append(f"avoid={quote_plus(','.join(avoid_vals))}")
+
+    # waypoints
+    wp = []
+    if waypoints:
+        if not isinstance(waypoints, (list, tuple)):
+            waypoints = [waypoints]
+        for w in waypoints:
+            s = _addr_from_any(w)
+            if s:
+                wp.append(s)
+    if wp:
+        # 'optimize:true|addr1|addr2|...'
+        if optimize:
+            wp_str = "optimize:true|" + "|".join(quote_plus(x) for x in wp)
+        else:
+            wp_str = "|".join(quote_plus(x) for x in wp)
+        parts.append(f"waypoints={wp_str}")
+
+    return "&".join(parts)
 
 def build_waze_url() -> str:
     """Stub: no se usaba en la rama estable; devolvemos string vacío."""
